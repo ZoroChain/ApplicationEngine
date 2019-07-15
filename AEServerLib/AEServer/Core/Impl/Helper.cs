@@ -10,8 +10,7 @@ using Newtonsoft.Json;
 
 namespace AEServer
 {
-
-    class AEHelper
+    public class AEHelper
     {
         static DateTime _DateTime1970=new DateTime(1970,1,1);
         public static uint ToUnixTimeStamp(DateTime time)
