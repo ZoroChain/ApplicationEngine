@@ -28,6 +28,7 @@ namespace AEServer.Session
 
         private bool _isClosing = false;
         private bool _isClosed = false;
+        private bool _isChangingService = false;
 
         private int _queuedTaskCount = 0;
 
@@ -101,6 +102,18 @@ namespace AEServer.Session
             }
         }
 
+        public bool isChangingService
+        {
+            get
+            {
+                return _isChangingService;
+            }
+            set
+            {
+                _isChangingService = value;
+            }
+        }
+
         public bool setSessionData(string key, object data)
         {
             _datas[key] = data;
@@ -167,6 +180,11 @@ namespace AEServer.Session
             // waiting to close
 
             return true;
+        }
+
+        public void notifyError(int errCode, string errMsg)
+        {
+            // TO DO : notify error with alive connection
         }
 
         public void addTask(AESessionTask task)

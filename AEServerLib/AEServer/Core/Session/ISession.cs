@@ -56,6 +56,12 @@ namespace AEServer.Session
             set;
         }
 
+        bool isChangingService
+        {
+            get;
+            set;
+        }
+
         void addAssociateSession(IAssociateSession s);
 
         IAssociateSession getAssociateSession(ListenerType type);
@@ -65,5 +71,7 @@ namespace AEServer.Session
         object getSessionData(string key);
 
         bool closing(string msg);
+
+        void notifyError(int errCode, string errMsg);
     }
 }

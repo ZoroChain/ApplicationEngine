@@ -179,6 +179,9 @@ namespace AEServer.Service
         {
             if(!(session is AESession) || !(t is AESessionTask))
             {
+                session.lastErrorCode = AEErrorCode.ERR_SESSION_QUEUE_TASK_ERROR;
+                session.lastErrorMsg = "AEServer session manager queueSessionTask session[" + AESession.dumpSessionInfo(session) + "] is not AESession or task["+t+"] is not AESessionTask";
+                Debug.logger.log(LogType.LOG_WARNNING, session.lastErrorMsg);
                 return null;
             }
             

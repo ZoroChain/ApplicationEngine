@@ -161,7 +161,7 @@ namespace AEServer.Service
 
             Debug.logger.log(LogType.LOG_DEBUG, "service: "+_runingService.name+" close session:"+_session.sessionID+" cls:" + _cls +" method:"+_method +" par:"+AEHelper.dumpObject(_par));
 
-            // TO DO : close session
+            // close session
             _runingGame.onSessionClose(_session, _cls, _method, _par);
 
             _runingService.removeSession(_session);
@@ -182,17 +182,23 @@ namespace AEServer.Service
 
             Debug.logger.log(LogType.LOG_DEBUG, "service:"+_runingService.name+" add session:"+_session.sessionID+" cls:" + _cls +" method:"+_method +" par:"+AEHelper.dumpObject(_par));
 
-            // TO DO : add session
+            // add session
             _runingGame.onAddSession(_session, _cls, _method, _par);
             
             _runingService.addSession(_session);
+
+            // changing service is finish
+            _session.isChangingService = false;
         }
     }
     
     public class AESessionRemoveTask : AESessionTask
     {
-        public AESessionRemoveTask(ISession s, string cls, string method, object par) : base(s, cls, method, par)
+        protected IService _newSvr = null;
+
+        public AESessionRemoveTask(IService newSvr, ISession s, string cls, string method, object par) : base(s, cls, method, par)
         {
+            _newSvr = newSvr;
         }
 
         override protected void _doWork()
@@ -201,10 +207,16 @@ namespace AEServer.Service
 
             Debug.logger.log(LogType.LOG_DEBUG, "service:"+_runingService.name+" remove session:"+_session.sessionID+" cls:" + _cls +" method:"+_method +" par:"+AEHelper.dumpObject(_par));
 
-            // TO DO : remove session
+            // remove session
             _runingGame.onRemoveSession(_session, _cls, _method, _par);
 
             _runingService.removeSession(_session);
+
+            // finish remove session
+
+            // add session to new service
+            AESessionAddTask addTsk = new AESessionAddTask(_session, "__session", "add", "changing service");
+            _newSvr.queueTask(_session, addTsk);
         }
     }
 

@@ -167,24 +167,35 @@ namespace AEServer.Session
 
         public void changeSessionService(ISession s, IService sv)
         {
-            lock(_sessionServiceLock)
+            lock (_sessionServiceLock)
             {
                 // remove & add session inside _sessionServiceLock to prevent queue session task after remove session or before add session
-                
+
                 // remove session from old service
                 IService oldSvr = null;
                 if(_sessionServicePair.TryGetValue(s, out oldSvr))
                 {
-                    AESessionRemoveTask rmvTsk = new AESessionRemoveTask(s, "__session", "remove", "changing service");
+                    // start changing service
+                    s.isChangingService = true;
+
+                    AESessionRemoveTask rmvTsk = new AESessionRemoveTask(sv, s, "__session", "remove", "changing service");
                     // Notice : very careful with _sessionServiceLock, never lock it inside tasks, or will cause dead lock
                     oldSvr.queueTask(s, rmvTsk); 
+                }
+                else
+                {
+                    // no old session direct add session
+                    // add session to new service
+                    AESessionAddTask addTsk = new AESessionAddTask(s, "__session", "add", "changing service");
+                    sv.queueTask(s, addTsk);
                 }
 
                 _sessionServicePair[s] = sv;
 
-                // add session to new service
-                AESessionAddTask addTsk = new AESessionAddTask(s, "__session", "add", "changing service");
-                sv.queueTask(s, addTsk);
+                // do add session after remove session is finish!!!
+                //// add session to new service
+                //AESessionAddTask addTsk = new AESessionAddTask(s, "__session", "add", "changing service");
+                //sv.queueTask(s, addTsk);
             }
         }
         
@@ -194,7 +205,18 @@ namespace AEServer.Session
             if(session.isClosed || session.isClosing)
             {
                 // session is closing or closed, discard message
-                Debug.logger.log(LogType.LOG_ERR, "AEServer session manager queueSessionTask session["+AESession.dumpSessionInfo(session)+"] is closing or closed");
+                session.lastErrorCode = AEErrorCode.ERR_SESSION_QUEUE_TASK_ERROR;
+                session.lastErrorMsg = "AEServer session manager queueSessionTask session[" + AESession.dumpSessionInfo(session) + "] is closing or closed";
+                Debug.logger.log(LogType.LOG_ERR, session.lastErrorMsg);
+                return null;
+            }
+
+            if (session.isChangingService && !(t is AESessionAddTask))
+            {
+                session.lastErrorCode = AEErrorCode.ERR_SESSION_QUEUE_TASK_ERROR;
+                session.lastErrorMsg = "AEServer session manager queueSessionTask session[" + AESession.dumpSessionInfo(session) + "] is changing service";
+                Debug.logger.log(LogType.LOG_WARNNING, session.lastErrorMsg); 
+                // when session is changing service, only session add task is accept, any other task will be discard
                 return null;
             }
 
@@ -206,7 +228,9 @@ namespace AEServer.Session
             IService svr = _getSessionService(session);
             if(svr == null)
             {
-                Debug.logger.log(LogType.LOG_ERR, "Code["+AEErrorCode.ERR_SERVICE_NOT_FOUND+"] AEServer session manager queueSessionTask session["+AESession.dumpSessionInfo(session)+"] without service");
+                session.lastErrorCode = AEErrorCode.ERR_SERVICE_NOT_FOUND;
+                session.lastErrorMsg = "AEServer session manager queueSessionTask session[" + AESession.dumpSessionInfo(session) + "] without service";
+                Debug.logger.log(LogType.LOG_ERR, session.lastErrorMsg);
                 return null;
             }
 
