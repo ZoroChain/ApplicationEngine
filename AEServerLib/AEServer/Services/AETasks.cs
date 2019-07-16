@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 using AEServer.Session;
 using AEServer.Game;
@@ -117,13 +118,13 @@ namespace AEServer.Service
 
     public class AESessionTask : AETaskBase
     {
-        protected ISession _session = null;
+        protected AEServer.Session.ISession _session = null;
 
         protected string _cls = "";
         protected string _method = "";
         protected object _par = null;
 
-        public ISession assocSession
+        public AEServer.Session.ISession assocSession
         {
             get
             {
@@ -131,7 +132,7 @@ namespace AEServer.Service
             }
         }
 
-        public AESessionTask(ISession s, string cls, string method, object par) 
+        public AESessionTask(AEServer.Session.ISession s, string cls, string method, object par) 
         {
             _session = s;
             _cls = cls;
@@ -151,7 +152,7 @@ namespace AEServer.Service
 
     public class AESessionCloseTask : AESessionTask
     {
-        public AESessionCloseTask(ISession s, string cls, string method, object par) : base(s, cls, method, par)
+        public AESessionCloseTask(AEServer.Session.ISession s, string cls, string method, object par) : base(s, cls, method, par)
         {
         }
 
@@ -172,7 +173,7 @@ namespace AEServer.Service
 
     public class AESessionAddTask : AESessionTask
     {
-        public AESessionAddTask(ISession s, string cls, string method, object par) : base(s, cls, method, par)
+        public AESessionAddTask(AEServer.Session.ISession s, string cls, string method, object par) : base(s, cls, method, par)
         {
         }
 
@@ -196,7 +197,7 @@ namespace AEServer.Service
     {
         protected IService _newSvr = null;
 
-        public AESessionRemoveTask(IService newSvr, ISession s, string cls, string method, object par) : base(s, cls, method, par)
+        public AESessionRemoveTask(IService newSvr, AEServer.Session.ISession s, string cls, string method, object par) : base(s, cls, method, par)
         {
             _newSvr = newSvr;
         }
@@ -222,9 +223,11 @@ namespace AEServer.Service
 
     public class AEHttpSessionTask : AESessionTask
     {
-        
-        public AEHttpSessionTask(ISession s, string cls, string method, object par) : base(s, cls, method, par)
+        protected object _sCtx = null;
+
+        public AEHttpSessionTask(AEServer.Session.ISession s, object sCtx, string cls, string method, object par) : base(s, cls, method, par)
         {
+            _sCtx = sCtx;
         }
 
         override protected void _doWork()
@@ -236,10 +239,10 @@ namespace AEServer.Service
             
             try
             {
-                if(!_runingGame.onSessionCmd(_session, _cls, _method, _par))
+                if(!_runingGame.onSessionCmd(_session, _sCtx, _cls, _method, _par))
                 {
                     AEHttpAssociateSession htases = (AEHttpAssociateSession)_session.getAssociateSession(ListenerType.LT_HTTP);
-                    htases.writeErrorAsync(_session.lastErrorCode, _session.lastErrorMsg);
+                    htases.writeErrorAsync(_sCtx, _session.lastErrorCode, _session.lastErrorMsg);
                 }
             }
             catch(Exception e)
@@ -248,7 +251,7 @@ namespace AEServer.Service
                 Debug.logger.log(LogType.LOG_ERR, "Service["+_runingService.name+"] with game name["+_runingGame.name+"] run AEHttpSessionTask cls["+_cls+"] method["+_method+"] exception catched!");
 
                 AEHttpAssociateSession htases = (AEHttpAssociateSession)_session.getAssociateSession(ListenerType.LT_HTTP);
-                htases.writeErrorAsync(AEErrorCode.ERR_SYS_SERVER_INTERNAL_ERROR, e.Message);
+                htases.writeErrorAsync(_sCtx, AEErrorCode.ERR_SYS_SERVER_INTERNAL_ERROR, e.Message);
             }
         }
     }

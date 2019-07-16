@@ -26,7 +26,7 @@ namespace AEServer.Game
         void onRemoveSession(ISession s, string cls, string method, object par);
         void onSessionClose(ISession s, string cls, string method, object par);
 
-        bool onSessionCmd(ISession s, string cls, string method, object par);
+        bool onSessionCmd(ISession s, object sCtx, string cls, string method, object par);
 
         void onTick(ulong timeStamp);
     }

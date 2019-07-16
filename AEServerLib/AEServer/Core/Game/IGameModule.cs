@@ -24,7 +24,7 @@ namespace AEServer.Game
 
         void initPlayer(IPlayer p);
 
-        bool onPlayerCmd(IPlayer p, string cmd, object par);
+        bool onPlayerCmd(IPlayer p, object sCtx, string cmd, object par);
 
         void onTick(ulong timeStamp);
     }

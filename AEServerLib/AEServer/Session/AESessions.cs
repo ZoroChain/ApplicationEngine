@@ -211,19 +211,10 @@ namespace AEServer.Session
     public class AEHttpAssociateSession : IAssociateSession
     {
         protected string _orgSessoinID = "";
-        protected HttpContext _httpCtx = null;
 
         public AEHttpAssociateSession(string orgSID)
         {
             _orgSessoinID = orgSID;
-        }
-
-        public HttpContext httpCtx
-        {
-            get
-            {
-                return _httpCtx;
-            }
         }
         
         public object orgSessionID
@@ -246,22 +237,27 @@ namespace AEServer.Session
         {
             // TO DO : close
 
+            //foreach (var cookie in this._httpCtx.Request.Cookies.Keys)
+            //{
+            //    this._httpCtx.Response.Cookies.Delete(cookie);
+            //}
+
             return true;
         }
 
         public void init(HttpContext ctx)
         {
-            _httpCtx = ctx;
+            // TO DO : record infos
         }
 
-        public Task writeErrorAsync(int errCode, string msg)
+        public Task writeErrorAsync(object sCtx, int errCode, string msg)
         {
-            return _httpCtx.Response.WriteAsync("{\"res\":"+errCode+", \"msg\":\""+msg+"\"}");
+            return ((HttpContext)sCtx).Response.WriteAsync("{\"res\":"+errCode+", \"msg\":\""+msg+"\"}");
         }
 
-        public Task writeAsync(string data)
+        public Task writeAsync(object sCtx, string data)
         {
-            return _httpCtx.Response.WriteAsync(data);
+            return ((HttpContext)sCtx).Response.WriteAsync(data);
         }
     }
 }

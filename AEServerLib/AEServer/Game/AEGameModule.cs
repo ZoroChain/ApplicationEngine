@@ -52,7 +52,7 @@ namespace AEServer.Game
 
         }
 
-        virtual public bool onPlayerCmd(IPlayer p, string cmd, object par)
+        virtual public bool onPlayerCmd(IPlayer p, object sCtx, string cmd, object par)
         {
             Func<IRpcProtocol> protoCrt = null;
 
@@ -73,7 +73,7 @@ namespace AEServer.Game
             //     return false;
             // }
 
-            return proto.doCommand(p, this, par);
+            return proto.doCommand(p, sCtx, this, par);
         }
 
         virtual public void onTick(ulong timeStamp)

@@ -1,5 +1,6 @@
 
 using System;
+using System.Runtime.InteropServices;
 using System.Dynamic;
 using System.Linq;
 using System.Collections;
@@ -33,6 +34,14 @@ namespace AEServer
             }
 
             return JsonConvert.SerializeObject(obj);
+        }
+
+        public static string dumpObjectAddress(object obj)
+        {
+            GCHandle h = GCHandle.Alloc(obj, GCHandleType.WeakTrackResurrection);
+            IntPtr addr = GCHandle.ToIntPtr(h);
+            h.Free();
+            return addr.ToString("X");
         }
 
         public static object ConvertKVPairArrayToDynamicObject<VT>(KeyValuePair<string, VT>[] ary)

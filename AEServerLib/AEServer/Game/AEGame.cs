@@ -154,7 +154,7 @@ namespace AEServer.Game
             _players.Remove(s.sessionID);
         }
 
-        public bool onSessionCmd(ISession s, string cls, string method, object par)
+        public bool onSessionCmd(ISession s, object sCtx, string cls, string method, object par)
         {
             AEPlayer p = null;
 
@@ -175,7 +175,7 @@ namespace AEServer.Game
                 return false;
             }
 
-            return m.onPlayerCmd(p, method, par);
+            return m.onPlayerCmd(p, sCtx, method, par);
         }
 
         virtual public void onTick(ulong timeStamp)
