@@ -1,6 +1,6 @@
 namespace AEServer.DB
 {
-    public class AEDBRedisTable : IDBTable<IDBObject>
+    public class AEDBTable : IDBTable<IDBObject>
     {
         protected string _name = "";
 

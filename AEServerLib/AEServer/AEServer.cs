@@ -9,7 +9,7 @@ namespace AEServer
 {
     public class AEServerInst
     {
-        private static AEDBRedisManager _dbManger = null;
+        private static AEDBManager _dbManger = null;
         private static AESessionManager _sessionManager = null;
         private static AEServiceManager _serviceManager = null;
         private static AEGameManager _gameManager = new AEGameManager();
@@ -22,8 +22,8 @@ namespace AEServer
 
             dynamic conf = config;
 
-            _dbManger = new AEDBRedisManager();
-            _dbManger.init(conf.DBManagerConf); // TO DO : expand dbManager types
+            _dbManger = new AEDBManager();
+            //_dbManger.init(conf.DBManagerConf); // TO DO : expand dbManager types
 
             _sessionManager = new AESessionManager();
             _sessionManager.init(conf.SessionManagerConf);

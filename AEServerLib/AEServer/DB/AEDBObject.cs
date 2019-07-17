@@ -2,7 +2,7 @@ using System.Dynamic;
 
 namespace AEServer.DB
 {
-    public class AEDBRedisObject : IDBObject
+    public class AEDBObject : IDBObject
     {
         protected ulong _id = 0;
         protected bool _isDirty = false;
