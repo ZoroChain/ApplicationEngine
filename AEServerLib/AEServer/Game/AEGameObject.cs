@@ -37,52 +37,21 @@ namespace AEServer.Game
         }
     }
 
-    public class AEGameDBObject: AEGameObject, IGameDBObject
+    public class AEPlayerGameObject: AEGameObject, IPlayerGameObject
     {
-        protected IDBObject _dbObj = null;
+        protected IPlayer _player = null;
 
-        public IDBObject dbObj
+        public AEPlayerGameObject(IPlayer p)
+        {
+            _player = p;
+        }
+
+        public IPlayer player
         {
             get
             {
-                return _dbObj;
+                return _player;
             }
-        }
-
-        virtual protected void _updateData()
-        {
-            
-        }
-
-        public bool initDBObject(IDBObject dbObj)
-        {
-            _dbObj = dbObj;
-
-            _syncData(_dbObj.data);
-
-            return true;
-        }
-
-        public bool flushData(bool persist)
-        {
-            if(_dbObj == null)
-            {
-                Debug.logger.log(LogType.LOG_ERR, "AEGameObject ["+name+"] flushData without _dbObject");
-                return false;
-            }
-            
-            _updateData();
-
-            //_dbObj.modifyObject(orgData);
-
-            bool ret = _dbObj.flush();
-
-            if(persist && _dbObj is IDBPersistObject)
-            {
-                ret = ((IDBPersistObject)_dbObj).persist();
-            }
-
-            return ret;
         }
     }
 }

@@ -9,6 +9,7 @@ namespace AEServer.Game
             get;
         }
 
+
         bool init(ISession s);
         bool fin(bool clearData);
 
@@ -17,5 +18,7 @@ namespace AEServer.Game
         void onTick(ulong timestamp);
 
         IGameObject getGameObject(string name);
+        IDBObject getMemDBObj(string name);
+        IDBObject getPersistDBObj(string name);
     }
 }

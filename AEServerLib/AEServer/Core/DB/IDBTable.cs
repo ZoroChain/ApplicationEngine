@@ -1,18 +1,20 @@
 namespace AEServer
 {
-    public interface IDBTable<IDBObjectT> where IDBObjectT: IDBObject
+    public interface IDBTable
     {
-        string name {get;}
+        string name { get; }
+
+        string keyName { get; }
 
         ulong dataCount {get;}
 
         bool init(object config);
 
-        IDBObjectT insertData(object Data);
+        IDBObject insertData(object Data);
 
-        IDBObjectT getData(ulong id);
+        IDBObject getDataObject(ulong id);
 
-        IDBObjectT queryDBObject(string query);
+        IDBObject queryDBObject(string query);
         
         object queryData(string query);
     }

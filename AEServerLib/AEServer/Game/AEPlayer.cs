@@ -20,6 +20,15 @@ namespace AEServer.Game
             return null;
         }
 
+        virtual public IDBObject getMemDBObj(string name)
+        {
+            return null;
+        }
+        virtual public IDBObject getPersistDBObj(string name)
+        {
+            return null;
+        }
+
         virtual public bool init(ISession s)
         {
             _session = s;

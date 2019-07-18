@@ -109,7 +109,7 @@ namespace AEServer.DB
             bool ret = true;
             try
             {
-                //string sql = "UPDATE, DELETE";
+                //string sql = "INSERT, UPDATE, DELETE";
                 MySqlCommand cmd = new MySqlCommand(query, _conn);
 
                 int rowaffect = cmd.ExecuteNonQuery();
@@ -120,6 +120,113 @@ namespace AEServer.DB
             {
                 Debug.logger.log(LogType.LOG_ERR, "Message[" + e.Message + "] Source[" + e.Source + "] Stack: " + e.StackTrace);
                 Debug.logger.log(LogType.LOG_ERR, "mysql db[" + _conf.name + "] source[" + _conf.source + "] query[" + query + "] failed!");
+            }
+
+            return ret;
+        }
+
+        public bool insert(string table, List<KeyValuePair<string, object>> obj)
+        {
+            if (_conn == null)
+            {
+                // error: without _conn
+                // important: don't log query, or may expose sensitive data!!!
+                Debug.logger.log(LogType.LOG_ERR, "mysql db[" + _conf.name + "] source[" + _conf.source + "] insert["+ table + "] without connection!");
+                return false;
+            }
+
+            bool ret = true;
+            try
+            {
+                //"INSERT INTO testtab(TestCol1,TestCol2) VALUES(@test1,@test2)";
+                string sql = "INSERT INTO " + table + "(";
+                string sql1 = ") VALUES(";
+                int i = 0;
+                foreach(var item in obj)
+                {
+                    if(i>0)
+                    {
+                        sql += ",";
+                        sql1 += ",";
+                    }
+                    sql += item.Key;
+                    sql1 += "@v" + i;
+                    ++i;
+                }
+
+                sql = sql + sql1 + ");";
+
+                MySqlCommand cmd = new MySqlCommand(sql, _conn);
+
+                i = 0;
+                foreach(var item in obj)
+                {
+                    string pname = "@v" + i;
+                    cmd.Parameters.AddWithValue(pname, item.Value);
+
+                    ++i;
+                }
+
+                int rowaffect = cmd.ExecuteNonQuery();
+
+                ret = (rowaffect > 0);
+            }
+            catch (Exception e)
+            {
+                Debug.logger.log(LogType.LOG_ERR, "Message[" + e.Message + "] Source[" + e.Source + "] Stack: " + e.StackTrace);
+                Debug.logger.log(LogType.LOG_ERR, "mysql db[" + _conf.name + "] source[" + _conf.source + "] insert[" + table + "] failed!");
+            }
+
+            return ret;
+        }
+
+        public bool update(string table, string keyName, string keyVal, List<KeyValuePair<string, object>> obj)
+        {
+            if (_conn == null)
+            {
+                // error: without _conn
+                // important: don't log query, or may expose sensitive data!!!
+                Debug.logger.log(LogType.LOG_ERR, "mysql db[" + _conf.name + "] source[" + _conf.source + "] update[" + table + "] keyname["+keyName+"] without connection!");
+                return false;
+            }
+
+            bool ret = true;
+            try
+            {
+                //update privatepropsinfo set propsbuffer = '%s' where uin = %llu
+                string sql = "UPDATE " + table + " SET ";
+                int i = 0;
+                foreach (var item in obj)
+                {
+                    if (i > 0)
+                    {
+                        sql += ", ";
+                    }
+                    sql += item.Key + "=@v" + i; 
+                    ++i;
+                }
+
+                sql = sql + " WHERE " + keyName +"="+ keyVal+";";
+
+                MySqlCommand cmd = new MySqlCommand(sql, _conn);
+
+                i = 0;
+                foreach (var item in obj)
+                {
+                    string pname = "@v" + i;
+                    cmd.Parameters.AddWithValue(pname, item.Value);
+
+                    ++i;
+                }
+
+                int rowaffect = cmd.ExecuteNonQuery();
+
+                ret = (rowaffect > 0);
+            }
+            catch (Exception e)
+            {
+                Debug.logger.log(LogType.LOG_ERR, "Message[" + e.Message + "] Source[" + e.Source + "] Stack: " + e.StackTrace);
+                Debug.logger.log(LogType.LOG_ERR, "mysql db[" + _conf.name + "] source[" + _conf.source + "] upate[" + table + "] keyname[" + keyName + "]  failed!");
             }
 
             return ret;

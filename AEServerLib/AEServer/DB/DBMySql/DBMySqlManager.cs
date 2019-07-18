@@ -7,6 +7,8 @@ namespace AEServer.DB
 {
     class DBMySqlManager
     {
+        public static DBMySqlManager manager = new DBMySqlManager();
+
         // per thread connections
         protected ConcurrentDictionary<int, ConcurrentDictionary<string, DBMySqlDB> > _dbs = new ConcurrentDictionary<int, ConcurrentDictionary<string, DBMySqlDB> >();
         protected ConcurrentDictionary<string, dynamic> _dbConfs = new ConcurrentDictionary<string, dynamic>();

@@ -7,6 +7,8 @@ namespace AEServer.DB
 {
     class DBRedisManager
     {
+        public static DBRedisManager manager = new DBRedisManager();
+
         protected ConcurrentDictionary<string, DBRedisDB> _dbs = new ConcurrentDictionary<string, DBRedisDB>();
 
         public bool init(object config)

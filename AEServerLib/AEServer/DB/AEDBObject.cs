@@ -1,15 +1,40 @@
 using System.Dynamic;
+using System.Collections.Generic;
 
 namespace AEServer.DB
 {
     public class AEDBObject : IDBObject
     {
-        protected ulong _id = 0;
-        protected bool _isDirty = false;
+        internal DBRedisDB _memDB = null;
 
-        protected dynamic _data = null;
+        protected IDBTable _table   = null;
+        protected string _id        = "";
 
-        public ulong id 
+        internal Dictionary<string, dynamic> _datas            = new Dictionary<string, dynamic>();
+        internal Dictionary<string, object> _lastSaveDatas     = new Dictionary<string, object>();
+
+        public AEDBObject(IDBTable table, object memDB, string id, object data, bool isFromDB)
+        {
+            _table = (IDBTable)table;
+            _memDB = (DBRedisDB)memDB;
+            _id = id;
+
+            IDictionary<string, object> IDic = (IDictionary<string, object>)data;
+            foreach(var item in IDic)
+            {
+                _datas[item.Key] = item.Value;
+
+                if(isFromDB)
+                {
+                    // data from database, update last save datas
+                    byte[] objBytes = AEDBHelper.serializeObject(item.Value);
+                    _lastSaveDatas[item.Key] = objBytes;
+                }
+            }
+
+        }
+
+        public string id
         {
             get
             {
@@ -17,53 +42,110 @@ namespace AEServer.DB
             }
         }
 
-        public bool isDirty 
+        virtual public bool isPersistObj
         {
             get
             {
-                return _isDirty;
+                return false;
             }
         }
-        
-        public dynamic data
+
+        public dynamic getData(string key)
         {
-            get
+            dynamic ret = null;
+            _datas.TryGetValue(key, out ret);
+            return ret;
+        }
+
+        public bool modifyData(string key, dynamic val)
+        {
+            _datas[key] = val;
+
+            return true;
+        }
+
+        virtual public bool _onFlushData(bool persist, List<KeyValuePair<string, object>> changedObjects)
+        {
+            bool ret = true;
+            foreach (var itm in changedObjects)
             {
-                return _data;
+                if (!_memDB.setHash(_id, itm.Key, itm.Value))
+                {
+                    ret = false;
+                    continue;
+                }
+
+                _lastSaveDatas[itm.Key] = itm.Value;
             }
+
+            return ret;
         }
 
-        public bool modifyObject(object newData)
+
+        public bool flush(bool persist)
         {
-            if(_data == null)
+            // find changed datas
+            List<KeyValuePair<string, object>> changedObjects = new List<KeyValuePair<string, object>>();
+
+            foreach (var ditm in _datas)
             {
-                _data = AEHelper.CloneDynamicObject(newData);
-                return true;
+                byte[] objBytes = AEDBHelper.serializeObject(ditm.Value);
+                object lastSavedBytes = null;
+
+                if (_lastSaveDatas.TryGetValue(ditm.Key, out lastSavedBytes) && AEDBHelper.isSameData(objBytes, (byte[])lastSavedBytes))
+                {
+                    continue;
+                }
+
+                changedObjects.Add(new KeyValuePair<string, object>(ditm.Key, objBytes));
+
             }
 
-            // TO DO : compare and modify data object
-
-            _isDirty = true;
-
-            return true;
+            return _onFlushData(persist, changedObjects);
         }
 
-        public bool modifyObject(string route, object newData)
+    }
+
+    public class AEDBPersistObject : AEDBObject
+    {
+        DBMySqlDB _persistDB = null;
+
+        public AEDBPersistObject(object persistDB, IDBTable table, object memDB, string id, object data, bool isFromDB) : base(table, memDB, id, data, isFromDB)
         {
-            // TO DO : modify by route
-            
-            _isDirty = true;
-            return true;
+            _persistDB = (DBMySqlDB)persistDB;
         }
 
-        public void markDirty()
+        override public bool _onFlushData(bool persist, List<KeyValuePair<string, object>> changedObjects)
         {
-            _isDirty = true;
-        }
+            bool ret = true;
+            foreach (var itm in changedObjects)
+            {
+                if (!_memDB.setHash(_id, itm.Key, itm.Value))
+                {
+                    ret = false;
+                    continue;
+                }
 
-        public bool flush()
-        {
-            return true;
+                if(!persist)
+                {
+                    _lastSaveDatas[itm.Key] = itm.Value;
+                }
+            }
+
+            if(persist)
+            {
+                // persist
+                _persistDB.update(_table.name, _table.keyName, this.id, changedObjects);
+
+                // update last save datas
+                foreach (var itm in changedObjects)
+                {
+                    _lastSaveDatas[itm.Key] = itm.Value;
+                }
+            }
+
+            return ret;
         }
     }
+
 }

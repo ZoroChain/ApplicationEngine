@@ -90,5 +90,46 @@ namespace AEServer.DB
 
             return val;
         }
+
+        public bool setHash(string hash, string field, object val)
+        {
+            if (_conn == null)
+            {
+                // error: without _conn
+                // important: don't log val, or may expose sensitive data!!!
+                Debug.logger.log(LogType.LOG_ERR, "DBRedisDB name[" + this.name + "] setHash hash[" + hash + "] field[" + field + "] without connection!");
+                return false;
+            }
+
+            IDatabase db = _conn.GetDatabase();
+            bool ret = db.HashSet(hash, field, (byte[])val);
+
+            if (!ret)
+            {
+                // error: without _conn
+                // important: don't log val, or may expose sensitive data!!!
+                Debug.logger.log(LogType.LOG_ERR, "DBRedisDB name[" + this.name + "] setHash hash[" + hash + "] field[" + field + "] failed!");
+                return false;
+            }
+
+            return ret;
+        }
+
+        public object getHash(string hash, string field)
+        {
+            if (_conn == null)
+            {
+                // error: without _conn
+                Debug.logger.log(LogType.LOG_ERR, "DBRedisDB name[" + this.name + "] getHash hash[" + hash + "] field[" + field + "] without connection");
+                return null;
+            }
+
+            IDatabase db = _conn.GetDatabase();
+            byte[] val = db.HashGet(hash, field);
+
+            return val;
+        }
+
+
     }
 }

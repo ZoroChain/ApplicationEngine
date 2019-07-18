@@ -1,10 +1,13 @@
 namespace AEServer.DB
 {
-    public class AEDBTable : IDBTable<IDBObject>
+    class AEDBTable : IDBTable
     {
         protected string _name = "";
+        protected string _keyName = "";
 
-        public string name 
+        DBRedisDB _memDB = null;
+
+        public string name
         {
             get
             {
@@ -12,7 +15,15 @@ namespace AEServer.DB
             }
         }
 
-        public ulong dataCount 
+        public string keyName
+        {
+            get
+            {
+                return _keyName;
+            }
+        }
+
+        public ulong dataCount
         {
             get
             {
@@ -23,6 +34,28 @@ namespace AEServer.DB
 
         public bool init(object config)
         {
+            dynamic conf = config;
+
+            _name = conf.name;
+            _memDB = DBRedisManager.manager.getDB(conf.name);
+            if(_memDB == null)
+            {
+                Debug.logger.log(LogType.LOG_ERR, "AEDBMemTable name[" + this.name + "] not exist!");
+                return false;
+            }
+
+            // TO DO : memtable data never expire
+
+            return true;
+        }
+        public bool fin()
+        {
+            if(_memDB != null)
+            {
+                // _memDB is managed by DB manager, don't release here
+                _memDB = null;
+            }
+
             return true;
         }
 
@@ -31,7 +64,7 @@ namespace AEServer.DB
             return null;
         }
 
-        public IDBObject getData(ulong id)
+        public IDBObject getDataObject(ulong id)
         {
             return null;
         }
@@ -40,11 +73,10 @@ namespace AEServer.DB
         {
             return null;
         }
-        
+
         public object queryData(string query)
         {
             return null;
         }
-
     }
 }

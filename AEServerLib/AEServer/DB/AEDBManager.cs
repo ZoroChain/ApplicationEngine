@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
+
 namespace AEServer.DB
 {
     public class AEDBManager : IDBManager
     {
-        DBMySqlManager _mySqlManager = new DBMySqlManager();
-        DBRedisManager _redisManager = new DBRedisManager();
+        ConcurrentDictionary<string, AEDBTable> _memtables = new ConcurrentDictionary<string, AEDBTable>();
+        ConcurrentDictionary<string, AEDBTable> _persisttables = new ConcurrentDictionary<string, AEDBTable>();
 
         public bool init(object config)
         {
@@ -11,11 +13,34 @@ namespace AEServer.DB
 
             dynamic conf = config;
 
-            // TO DO : initialize DB
-            _mySqlManager.init(conf.mysql);
-            _redisManager.init(conf.redis);
+            // initialize DB
+            DBMySqlManager.manager.init(conf.mysql);
+            DBRedisManager.manager.init(conf.redis);
 
-            // TO DO : initialize tables
+            // initialize tables
+            foreach(var item in conf.memtables)
+            {
+                AEDBTable tab = new AEDBTable();
+                if(!tab.init(item))
+                {
+                    // error
+                    continue;
+                }
+
+                _memtables[item.name] = tab;
+            }
+
+            foreach (var item in conf.persisttables)
+            {
+                AEDBTable tab = new AEDBTable();
+                if (!tab.init(item))
+                {
+                    // error
+                    continue;
+                }
+
+                _persisttables[item.name] = tab;
+            }
 
             Debug.logger.log(LogType.LOG_SYSTEM, "AEServer Initialize DBManager redis OK!");
             return true;
@@ -23,17 +48,48 @@ namespace AEServer.DB
 
         public bool fin()
         {
+            if(DBMySqlManager.manager != null)
+            {
+                DBMySqlManager.manager.fin();
+                DBMySqlManager.manager = null;
+            }
+            if(DBRedisManager.manager != null)
+            {
+                DBRedisManager.manager.fin();
+                DBRedisManager.manager = null;
+            }
+
+            if (_memtables != null)
+            {
+                foreach(var item in _memtables)
+                {
+                    item.Value.fin();
+                }
+                _memtables = null;
+            }
+            if (_persisttables != null)
+            {
+                foreach (var item in _persisttables)
+                {
+                    item.Value.fin();
+                }
+                _persisttables = null;
+            }
             return true;
         }
 
-        public IDBTable<IDBObject> getMemDBTalbe(string name)
+        public IDBTable getMemDBTalbe(string name)
         {
-            return null;
+            AEDBTable obj = null;
+            _memtables.TryGetValue(name, out obj);
+            return (IDBTable)obj;
         }
 
-        public IDBTable<IDBPersistObject> getPersistDBTable(string name)
+        public IDBTable getPersistDBTable(string name)
         {
-            return null;
+            AEDBTable obj = null;
+            _persisttables.TryGetValue(name, out obj);
+            return (IDBTable)obj;
         }
     }
 }

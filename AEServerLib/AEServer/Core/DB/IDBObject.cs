@@ -2,24 +2,15 @@ namespace AEServer
 {
     public interface IDBObject
     {
-        ulong id {get;}
+        string id { get; }
 
-        bool isDirty {get;}
-        
-        dynamic data {get;}
+        bool isPersistObj { get; }
 
-        bool modifyObject(object newData);
+        dynamic getData(string key);
 
-        bool modifyObject(string route, object newData);
+        bool modifyData(string key, dynamic val);
 
-        void markDirty();
+        bool flush(bool persist);
 
-        bool flush();
-
-    }
-
-    public interface IDBPersistObject : IDBObject
-    {
-        bool persist();
     }
 }

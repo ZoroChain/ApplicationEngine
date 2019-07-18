@@ -6,8 +6,8 @@ namespace AEServer
 
         bool fin();
 
-        IDBTable<IDBObject> getMemDBTalbe(string name);
+        IDBTable getMemDBTalbe(string name);
 
-        IDBTable<IDBPersistObject> getPersistDBTable(string name);
+        IDBTable getPersistDBTable(string name);
     }
 }

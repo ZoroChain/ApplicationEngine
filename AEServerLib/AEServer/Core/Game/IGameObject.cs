@@ -15,15 +15,13 @@ namespace AEServer.Game
         bool syncFrom(object orgData);
     }
 
-    public interface IGameDBObject : IGameObject
+    public interface IPlayerGameObject : IGameObject
     {
-        IDBObject dbObj
+        IPlayer player
         {
             get;
         }
 
-        bool initDBObject(IDBObject dbObj);
 
-        bool flushData(bool persist);
     }
 }
