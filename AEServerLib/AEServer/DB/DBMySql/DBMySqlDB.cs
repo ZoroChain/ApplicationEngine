@@ -56,7 +56,7 @@ namespace AEServer.DB
             return true;
         }
 
-        public List<object> query(string query)
+        public List<object> query(string query, IDBTableDesc desc)
         {
             if (_conn == null)
             {
@@ -80,7 +80,48 @@ namespace AEServer.DB
 
                     for(int i=0; i<rdr.FieldCount; ++i)
                     {
-                        IDic.Add(rdr.GetName(i), rdr.GetString(i));
+                        string key = rdr.GetName(i);
+                        AEDBDataType dt = desc.getDataType(key);
+                        switch (dt)
+                        {
+                            case AEDBDataType.ADDT_INT:
+                                IDic.Add(key, rdr.GetInt32(i));
+                                break;
+                            case AEDBDataType.ADDT_UINT:
+                                IDic.Add(key, rdr.GetUInt32(i));
+                                break;
+                            case AEDBDataType.ADDT_FLOAT:
+                                IDic.Add(key, rdr.GetFloat(i));
+                                break;
+                            case AEDBDataType.ADDT_LONG:
+                                IDic.Add(key, rdr.GetInt64(i));
+                                break;
+                            case AEDBDataType.ADDT_ULONG:
+                                IDic.Add(key, rdr.GetUInt64(i));
+                                break;
+                            case AEDBDataType.ADDT_DOUBLE:
+                                IDic.Add(key, rdr.GetDouble(i));
+                                break;
+                            case AEDBDataType.ADDT_BINARY:
+                                {
+                                    int length = (int)rdr.GetBytes(i, 0, null, 0, 0);
+                                    byte[] buffer = new byte[length];
+                                    int index = 0;
+
+                                    while (index < length)
+                                    {
+                                        int bytesRead = (int)rdr.GetBytes(i, index, buffer, index, length - index);
+                                        index += bytesRead;
+                                    }
+
+                                    IDic.Add(key, AEDBHelper.unserializeObject(buffer));
+                                }
+                                break;
+                            //case AEDBDataType.ADDT_STRING: // deault is string
+                            default:
+                                IDic.Add(key, rdr.GetString(i));
+                                break;
+                        }
                     }
 
                     ret.Add(obj);
@@ -125,7 +166,20 @@ namespace AEServer.DB
             return ret;
         }
 
-        public bool insert(string table, List<KeyValuePair<string, object>> obj)
+        public object getByKey(string keyID, IDBTableDesc desc)
+        {
+            string sql = "SELECT * FROM " + desc.name + " WHERE " + desc.keyName + " = " + keyID + ";";
+            List<object> retary = this.query(sql, desc);
+
+            if(retary!=null && retary.Count > 0)
+            {
+                return retary[0];
+            }
+
+            return null;
+        }
+
+        public bool insert(string table, List<KeyValuePair<string, object>> obj, IDBTableDesc desc)
         {
             if (_conn == null)
             {
@@ -162,7 +216,14 @@ namespace AEServer.DB
                 foreach(var item in obj)
                 {
                     string pname = "@v" + i;
-                    cmd.Parameters.AddWithValue(pname, item.Value);
+                    if (desc.getDataType(item.Key) == AEDBDataType.ADDT_BINARY)
+                    {
+                        cmd.Parameters.AddWithValue(pname, AEDBHelper.serializeObject(item.Value));
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue(pname, item.Value);
+                    }
 
                     ++i;
                 }
@@ -180,7 +241,7 @@ namespace AEServer.DB
             return ret;
         }
 
-        public bool update(string table, string keyName, string keyVal, List<KeyValuePair<string, object>> obj)
+        public bool update(string table, string keyName, string keyVal, List<KeyValuePair<string, object>> obj, IDBTableDesc desc)
         {
             if (_conn == null)
             {
@@ -214,7 +275,14 @@ namespace AEServer.DB
                 foreach (var item in obj)
                 {
                     string pname = "@v" + i;
-                    cmd.Parameters.AddWithValue(pname, item.Value);
+                    if (desc.getDataType(item.Key) == AEDBDataType.ADDT_BINARY)
+                    {
+                        cmd.Parameters.AddWithValue(pname, AEDBHelper.serializeObject(item.Value));
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue(pname, item.Value);
+                    }
 
                     ++i;
                 }

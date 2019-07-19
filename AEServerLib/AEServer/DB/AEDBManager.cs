@@ -4,8 +4,8 @@ namespace AEServer.DB
 {
     public class AEDBManager : IDBManager
     {
-        ConcurrentDictionary<string, AEDBTable> _memtables = new ConcurrentDictionary<string, AEDBTable>();
-        ConcurrentDictionary<string, AEDBTable> _persisttables = new ConcurrentDictionary<string, AEDBTable>();
+        ConcurrentDictionary<string, AEDBMemTable> _memtables = new ConcurrentDictionary<string, AEDBMemTable>();
+        ConcurrentDictionary<string, AEDBPersistTable> _persisttables = new ConcurrentDictionary<string, AEDBPersistTable>();
 
         public bool init(object config)
         {
@@ -20,7 +20,7 @@ namespace AEServer.DB
             // initialize tables
             foreach(var item in conf.memtables)
             {
-                AEDBTable tab = new AEDBTable();
+                AEDBMemTable tab = new AEDBMemTable();
                 if(!tab.init(item))
                 {
                     // error
@@ -32,7 +32,7 @@ namespace AEServer.DB
 
             foreach (var item in conf.persisttables)
             {
-                AEDBTable tab = new AEDBTable();
+                AEDBPersistTable tab = new AEDBPersistTable();
                 if (!tab.init(item))
                 {
                     // error
@@ -80,14 +80,14 @@ namespace AEServer.DB
 
         public IDBTable getMemDBTalbe(string name)
         {
-            AEDBTable obj = null;
+            AEDBMemTable obj = null;
             _memtables.TryGetValue(name, out obj);
             return (IDBTable)obj;
         }
 
         public IDBTable getPersistDBTable(string name)
         {
-            AEDBTable obj = null;
+            AEDBPersistTable obj = null;
             _persisttables.TryGetValue(name, out obj);
             return (IDBTable)obj;
         }
