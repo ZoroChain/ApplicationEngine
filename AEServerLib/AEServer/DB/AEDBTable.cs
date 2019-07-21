@@ -119,7 +119,7 @@ namespace AEServer.DB
             dynamic conf = config;
 
             _desc.initFromConf(conf);
-            _memDB = DBRedisManager.manager.getDB(conf.name);
+            _memDB = DBRedisManager.manager.getDB(conf.memDBName);
             if(_memDB == null)
             {
                 Debug.logger.log(LogType.LOG_ERR, "AEDBMemTable name[" + this.desc.name + "] not exist!");
@@ -217,7 +217,7 @@ namespace AEServer.DB
 
     class AEDBPersistTable : AEDBMemTable
     {
-        protected DBMySqlDB _mysqlDB = null;
+        protected DBMySqlDB[] _mysqlDB = null; 
 
         override public bool init(object config)
         {
@@ -227,12 +227,35 @@ namespace AEServer.DB
             }
 
             dynamic conf = config;
+            int dbcount = 1;
 
-            _mysqlDB = DBMySqlManager.manager.getDB(conf.name);
-            if (_mysqlDB == null)
+            if(AEHelper.HasProperty(conf, "distDBCount"))
             {
-                Debug.logger.log(LogType.LOG_ERR, "AEDBPersistTable name[" + this.desc.name + "] not exist!");
-                return false;
+                dbcount = conf.distDBCount;
+            }
+
+            _mysqlDB = new DBMySqlDB[dbcount];
+
+            if(_mysqlDB.Length > 1)
+            {
+                for (int i = 0; i < _mysqlDB.Length; ++i)
+                {
+                    _mysqlDB[i] = DBMySqlManager.manager.getDB(conf.persistDBName.ToString() + i);
+                    if (_mysqlDB == null)
+                    {
+                        Debug.logger.log(LogType.LOG_ERR, "AEDBPersistTable name[" + this.desc.name + "] persist db["+i+"] not exist!");
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                _mysqlDB[0] = DBMySqlManager.manager.getDB(conf.persistDBName);
+                if (_mysqlDB[0] == null)
+                {
+                    Debug.logger.log(LogType.LOG_ERR, "AEDBPersistTable name[" + this.desc.name + "] persist db not exist!");
+                    return false;
+                }
             }
 
             return true;
@@ -249,6 +272,12 @@ namespace AEServer.DB
             return true;
         }
 
+        protected uint _getDBIndexByKey(object key)
+        {
+            // TO DO : calculate db index by key, support distribute db storage
+            return 0;
+        }
+
         override protected IDBObject _onInsertData(List<KeyValuePair<string, object>> pars, object key, object Data)
         {
             if (!_memDB.setHashs(key.ToString(), pars, _desc))
@@ -257,7 +286,9 @@ namespace AEServer.DB
                 return null;
             }
 
-            if(!_mysqlDB.insert(_desc.name, pars, _desc))
+            uint dbindex = _getDBIndexByKey(key);
+
+            if (!_mysqlDB[dbindex].insert(_desc.name, pars, _desc))
             {
                 Debug.logger.log(LogType.LOG_ERR, "AEDBPersistTable name[" + this.desc.name + "] insert data keyName[" + _desc.keyName + "] keyVal[" + key + "] to mysql failed!");
                 return null;
@@ -283,7 +314,9 @@ namespace AEServer.DB
                 return obj;
             }
 
-            objdatas =  _mysqlDB.getByKey(id, _desc);
+            uint dbindex = _getDBIndexByKey(id);
+
+            objdatas =  _mysqlDB[dbindex].getByKey(id, _desc);
 
             if (!AEHelper.HasProperty(objdatas, _desc.keyName))
             {

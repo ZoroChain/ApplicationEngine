@@ -26,7 +26,7 @@ namespace AEServer.DB
 
             Debug.logger.log(LogType.LOG_SYSTEM, "Initialize mysql db[" + _conf.name + "] source[" + _conf.source + "]");
 
-            _conn = new MySqlConnection(_conf.source + "," + _conf.options);
+            _conn = new MySqlConnection(_conf.source + _conf.options);
             bool ret = true;
 
             try

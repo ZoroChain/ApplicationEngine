@@ -23,7 +23,7 @@ namespace AEServer
             dynamic conf = config;
 
             _dbManger = new AEDBManager();
-            //_dbManger.init(conf.DBManagerConf); // TO DO : expand dbManager types
+            _dbManger.init(conf.DBManagerConf); // TO DO : expand dbManager types
 
             _sessionManager = new AESessionManager();
             _sessionManager.init(conf.SessionManagerConf);

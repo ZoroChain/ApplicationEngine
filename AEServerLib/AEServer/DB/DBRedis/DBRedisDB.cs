@@ -10,6 +10,7 @@ namespace AEServer.DB
     {
         protected ConnectionMultiplexer _conn = null;
         protected dynamic _conf = null;
+        protected int _expireTime = -1;
 
         public string name
         {
@@ -22,6 +23,11 @@ namespace AEServer.DB
         public bool init(object config)
         {
             _conf = config;
+
+            if(AEHelper.HasProperty(_conf, "keyExpireTime"))
+            {
+                _expireTime = _conf.keyExpireTime;
+            }
 
             _conn = ConnectionMultiplexer.Connect(_conf.source+","+ _conf.options);
             if(_conn == null || !_conn.IsConnected)
@@ -64,7 +70,16 @@ namespace AEServer.DB
             }
 
             IDatabase db = _conn.GetDatabase();
-            bool ret = db.StringSet(key, val);
+            bool ret = true;
+
+            if(_expireTime > 0)
+            {
+                db.StringSet(key, val, TimeSpan.FromSeconds(_expireTime));
+            }
+            else
+            {
+                db.StringSet(key, val);
+            }
 
             if (!ret)
             {
@@ -87,7 +102,12 @@ namespace AEServer.DB
             }
 
             IDatabase db = _conn.GetDatabase();
-            byte[] val = db.StringGet("key");
+            byte[] val = db.StringGet(key);
+            if (_expireTime > 0)
+            {
+                // update expire time
+                db.KeyExpire(key, TimeSpan.FromSeconds(_expireTime));
+            }
 
             return val;
         }
@@ -142,7 +162,15 @@ namespace AEServer.DB
                 }
             }
 
-            db.HashSet(hash, hashs);
+            if (_expireTime > 0)
+            {
+                db.HashSet(hash, hashs);
+                db.KeyExpire(hash, TimeSpan.FromSeconds(_expireTime));
+            }
+            else
+            {
+                db.HashSet(hash, hashs);
+            }
 
             return ret;
         }
@@ -197,6 +225,12 @@ namespace AEServer.DB
                 }
             }
 
+            if (_expireTime > 0)
+            {
+                // update expire time
+                db.KeyExpire(hash, TimeSpan.FromSeconds(_expireTime));
+            }
+
             return ret;
         }
 
@@ -216,32 +250,32 @@ namespace AEServer.DB
             switch(dt)
             {
                 case AEDBDataType.ADDT_INT:
-                    db.HashSet(hash, field, (int)val);
+                    ret = db.HashSet(hash, field, (int)val);
                     break;
                 case AEDBDataType.ADDT_UINT:
-                    db.HashSet(hash, field, (uint)val);
+                    ret = db.HashSet(hash, field, (uint)val);
                     break;
                 case AEDBDataType.ADDT_FLOAT:
-                    db.HashSet(hash, field, (float)val);
+                    ret = db.HashSet(hash, field, (float)val);
                     break;
                 case AEDBDataType.ADDT_LONG:
-                    db.HashSet(hash, field, (long)val);
+                    ret = db.HashSet(hash, field, (long)val);
                     break;
                 case AEDBDataType.ADDT_ULONG:
-                    db.HashSet(hash, field, (ulong)val);
+                    ret = db.HashSet(hash, field, (ulong)val);
                     break;
                 case AEDBDataType.ADDT_DOUBLE:
-                    db.HashSet(hash, field, (double)val);
+                    ret = db.HashSet(hash, field, (double)val);
                     break;
                 case AEDBDataType.ADDT_BINARY:
                     {
                         byte[] objBytes = AEDBHelper.serializeObject(val);
-                        db.HashSet(hash, field, objBytes);
+                        ret = db.HashSet(hash, field, objBytes);
                     }
                     break;
                 //case AEDBDataType.ADDT_STRING: // deault is string
                 default:
-                    db.HashSet(hash, field, (string)val);
+                    ret = db.HashSet(hash, field, (string)val);
                     break;
             }
 
@@ -251,6 +285,12 @@ namespace AEServer.DB
                 // important: don't log val, or may expose sensitive data!!!
                 Debug.logger.log(LogType.LOG_ERR, "DBRedisDB name[" + this.name + "] setHash hash[" + hash + "] field[" + field + "] failed!");
                 return false;
+            }
+
+            if (_expireTime > 0)
+            {
+                // update expire time
+                db.KeyExpire(hash, TimeSpan.FromSeconds(_expireTime));
             }
 
             return ret;
@@ -298,6 +338,12 @@ namespace AEServer.DB
                 default:
                     val = (string)db.HashGet(hash, field);
                     break;
+            }
+
+            if (_expireTime > 0)
+            {
+                // update expire time
+                db.KeyExpire(hash, TimeSpan.FromSeconds(_expireTime));
             }
 
             return val;
