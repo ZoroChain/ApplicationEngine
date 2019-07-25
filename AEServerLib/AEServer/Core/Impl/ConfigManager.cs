@@ -55,7 +55,7 @@ namespace AEServer
             redisGlobalCache.name = "global";
             redisGlobalCache.source = "127.0.0.1:6380,127.0.0.1:6381";
             redisGlobalCache.options = "allowAdmin=true,password=123456";
-            redisGlobalCache.keyExpireTime = 600; // persist db cache with expire time;
+            redisGlobalCache.keyExpireTime = 600; // persist db cache with expire time; // TO DO : handle by aeserver, not redis
             redisDB.Add(redisGlobalCache);
 
             dynamic redisUserCache = new ExpandoObject();
