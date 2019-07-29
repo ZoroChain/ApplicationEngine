@@ -10,7 +10,7 @@ namespace AEServer.DB
         protected IDBTable _table   = null;
         protected string _id        = "";
 
-        internal Dictionary<string, dynamic> _datas            = new Dictionary<string, dynamic>();
+        internal Dictionary<string, object> _datas            = new Dictionary<string, object>();
         internal Dictionary<string, object> _lastSaveDatas     = new Dictionary<string, object>();
 
         public AEDBObject(IDBTable table, object memDB, string id, object data, bool isFromDB)
@@ -58,14 +58,14 @@ namespace AEServer.DB
             }
         }
 
-        public dynamic getData(string key)
+        public object getData(string key)
         {
-            dynamic ret = null;
+            object ret = null;
             _datas.TryGetValue(key, out ret);
             return ret;
         }
 
-        public bool modifyData(string key, dynamic val)
+        public bool modifyData(string key, object val)
         {
             _datas[key] = val;
 

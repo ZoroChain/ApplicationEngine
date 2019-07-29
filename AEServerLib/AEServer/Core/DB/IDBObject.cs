@@ -6,9 +6,9 @@ namespace AEServer
 
         bool isPersistObj { get; }
 
-        dynamic getData(string key);
+        object getData(string key);
 
-        bool modifyData(string key, dynamic val);
+        bool modifyData(string key, object val);
 
         bool flush(bool persist);
 
