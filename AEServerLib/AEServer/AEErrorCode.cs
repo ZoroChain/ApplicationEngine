@@ -5,6 +5,7 @@ namespace AEServer
         // system error
         public static int ERR_SYS_SERVER_INTERNAL_ERROR = -1;
         public static int ERR_SYS_SERVER_LOGIN_VERIFSIGN_ERROR = -101;
+        public static int ERR_SYS_SERVER_LOGINPARAMETER_ISNULL_ERROR = -102;
 
         // session error
         public static int ERR_SESSION_NEED_LOGIN        = -1001;
