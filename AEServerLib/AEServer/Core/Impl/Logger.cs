@@ -67,7 +67,7 @@ namespace AEServer
                 return;
             }
 
-            Console.WriteLine(_LoggerHelper.formatLogMessage(t, msg));
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay:hh\\:mm\\:ss\\.fff}]"+_LoggerHelper.formatLogMessage(t, msg));
         }
     }
 }
