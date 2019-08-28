@@ -40,6 +40,8 @@ namespace AEServer
 
         IDBObject getDataObject(string id);
 
+        bool isExist(string id);
+
         IDBObject queryDBObject(string query);
         
         object queryData(string query);

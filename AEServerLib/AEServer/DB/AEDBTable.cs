@@ -202,6 +202,17 @@ namespace AEServer.DB
             return obj;
         }
 
+        virtual public bool isExist(string id)
+        {
+            dynamic objdatas = _memDB.getHashs(id, this.desc);
+            if (objdatas == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         virtual public IDBObject queryDBObject(string query)
         {
             // only persist table can query

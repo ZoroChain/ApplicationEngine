@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace AEServer
 {
@@ -46,6 +47,7 @@ namespace AEServer
 
     public class AEConsoleLogger : ILogger
     {
+        private static object logLock = new object();
         public AEConsoleLogger()
         {
             Debug.regLogger(this);
@@ -67,7 +69,17 @@ namespace AEServer
                 return;
             }
 
-            Console.WriteLine($"[{DateTime.Now.TimeOfDay:hh\\:mm\\:ss\\.fff}]"+_LoggerHelper.formatLogMessage(t, msg));
+            string line = $"[{DateTime.Now.TimeOfDay:hh\\:mm\\:ss\\.fff}]" + _LoggerHelper.formatLogMessage(t, msg);
+
+            Console.WriteLine(line);
+
+            string log_dictionary = $"Logs";
+            string path = Path.Combine(log_dictionary, $"{DateTime.Now:yyyy-MM-dd}.log");
+            lock (logLock)
+            {
+                Directory.CreateDirectory(log_dictionary);
+                File.AppendAllLines(path, new[] { line });
+            }
         }
     }
 }

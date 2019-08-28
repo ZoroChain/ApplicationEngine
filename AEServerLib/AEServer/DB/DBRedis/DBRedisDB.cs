@@ -29,7 +29,7 @@ namespace AEServer.DB
                 _expireTime = _conf.keyExpireTime;
             }
 
-            _conn = ConnectionMultiplexer.Connect(_conf.source+","+ _conf.options);
+            _conn = ConnectionMultiplexer.Connect(_conf.source + "," + _conf.options);
             if(_conn == null || !_conn.IsConnected)
             {
                 Debug.logger.log(LogType.LOG_ERR, "Initialize redis db[" + _conf.name + "] source[" + _conf.source + "] failed!");

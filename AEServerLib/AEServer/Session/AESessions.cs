@@ -259,5 +259,11 @@ namespace AEServer.Session
         {
             return ((HttpContext)sCtx).Response.WriteAsync(data);
         }
+
+        public object getSessionInfo(object sCtx)
+        {
+            // TO DO : return remote ip, http header etc.
+            return ((HttpContext)sCtx).Connection.RemoteIpAddress.MapToIPv4();
+        }
     }
 }
