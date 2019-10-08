@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-
-using MySql.Data;
 using MySql.Data.MySqlClient;
 
 namespace AEServer.DB

@@ -1,5 +1,3 @@
-using AEServer.Session;
-
 namespace AEServer.Game
 {
     public interface IGameModule

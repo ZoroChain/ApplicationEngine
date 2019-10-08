@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 using Newtonsoft.Json;
 
 namespace AEServer.DB
-{ 
+{
     public class AEDBHelper
     {
         public static byte[] serializeObject(object obj)

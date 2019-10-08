@@ -1,8 +1,4 @@
-using System;
-using System.Dynamic;
 using System.Collections.Generic;
-
-using AEServer.DB;
 using AEServer.Session;
 
 namespace AEServer.Game
@@ -169,8 +165,16 @@ namespace AEServer.Game
             IGameModule m = getGameModule(cls);
             if(m == null)
             {
-                s.lastErrorCode = AEErrorCode.ERR_SYS_SERVER_INTERNAL_ERROR;
-                s.lastErrorMsg = "game ["+this.name+"] onSessionCmd sid ["+s.sessionID+"] game module["+cls+"] not exist!";
+                if (this.name == "SHOutGame" && cls == "webGame")
+                {
+                    s.lastErrorCode = AEErrorCode.ERR_SESSION_NEED_LOGIN;
+                    s.lastErrorMsg = "need login!";
+                }
+                else
+                {
+                    s.lastErrorCode = AEErrorCode.ERR_SYS_SERVER_INTERNAL_ERROR;
+                    s.lastErrorMsg = "game [" + this.name + "] onSessionCmd sid [" + s.sessionID + "] game module[" + cls + "] not exist!";
+                }
                 Debug.logger.log(LogType.LOG_ERR, s.lastErrorMsg);
                 return false;
             }

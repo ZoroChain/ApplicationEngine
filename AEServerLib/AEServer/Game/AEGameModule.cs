@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-using AEServer.Session;
-
-namespace AEServer.Game 
+namespace AEServer.Game
 {
     public class AEGameModuleBase : IGameModule
     {

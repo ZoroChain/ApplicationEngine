@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Text;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 
 namespace AEServer.DB
@@ -23,6 +21,10 @@ namespace AEServer.DB
             {
                 //DBMySqlDB db = new DBMySqlDB();
                 //db.init(item);
+
+                //ConcurrentDictionary<string, DBMySqlDB> dbDic = new ConcurrentDictionary<string, DBMySqlDB>();
+                //dbDic.TryAdd(item.name, db);
+                //_dbs[_dbs.Count] = dbDic;
 
                 //_dbs[item.name] = db;
 
@@ -90,7 +92,7 @@ namespace AEServer.DB
             if(db == null)
             {
                 dynamic dbconf = null;
-                _dbConfs.TryGetValue(name, dbconf);
+                _dbConfs.TryGetValue(name, out dbconf);
 
                 if(dbconf == null)
                 {

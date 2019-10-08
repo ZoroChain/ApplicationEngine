@@ -17,5 +17,7 @@ namespace AEServer
         // service error
         public static int ERR_SERVICE_NOT_FOUND         = -2001;
 
+        public static int ERR_PARAMETER_IS_NULL = -2021;
+
     }
 }
