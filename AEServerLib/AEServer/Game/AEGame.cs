@@ -175,7 +175,8 @@ namespace AEServer.Game
                     s.lastErrorCode = AEErrorCode.ERR_SYS_SERVER_INTERNAL_ERROR;
                     s.lastErrorMsg = "game [" + this.name + "] onSessionCmd sid [" + s.sessionID + "] game module[" + cls + "] not exist!";
                 }
-                Debug.logger.log(LogType.LOG_ERR, s.lastErrorMsg);
+                if (method != "refreshUser" && method != "logout")
+                    Debug.logger.log(LogType.LOG_ERR, s.lastErrorMsg);
                 return false;
             }
 

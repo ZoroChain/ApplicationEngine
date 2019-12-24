@@ -201,6 +201,8 @@ namespace AEServer.Service
             // record task in session
             aeses.addTask(aest);
 
+            //Console.WriteLine(aest.assocSession.sessionID + ":" + aest.assocSession.lastActiveTime);
+
             // dispatch task
             int idx = _getThreadIndexBySession(session);
             _threads[idx].queueTask(t);
